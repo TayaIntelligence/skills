@@ -1,128 +1,117 @@
 # Taya Skills
 
-A collection of **Agent Skills** for Claude — reusable capability packs that teach the
-assistant a specialized way of working. Each skill is a self-contained folder with a
-`SKILL.md` (instructions), plus the templates and references it pulls from on demand.
+[简体中文](README_zh-CN.md)
 
-This repo currently ships one skill: **`technical-pm`**.
+This repository contains reusable **Agent Skills**: self-contained capability packs that teach an
+assistant a specialized way of working. A skill folder usually includes:
 
-> 📖 English below · [中文说明见下半部分 ↓](#中文说明)
+- `SKILL.md` with the operating instructions and workflow router.
+- `assets/` with reusable templates.
+- `references/` with deeper guidance the assistant loads only when needed.
+- optional `agents/` metadata for supported assistant surfaces.
 
----
+The repository currently ships one skill: **`technical-pm`**.
 
-## `technical-pm` — Technical Product Manager
+## `technical-pm`
 
-Makes the assistant operate as an experienced **technical product manager**: someone who
-owns *what to build and why*, not just how. Point it at a fuzzy idea or a raw feature
-request and it turns it into clear, sharply-scoped, buildable product artifacts — and it
-won't write code until the product thinking is solid.
+`technical-pm` makes the assistant operate like an experienced technical product manager. It is
+designed for moments when the important question is **what to build and why**, before jumping into
+implementation.
 
-### What it produces
+Give it a rough idea, a feature request, meeting notes, or an existing requirements document. It helps
+turn that material into clear, scoped, testable product artifacts that engineering teams can act on.
 
-| Need | What you get |
+### What It Helps With
+
+| Need | Output |
 |---|---|
-| **Discovery & framing** | The real problem surfaced (5 Whys, Jobs-To-Be-Done) before any solution is accepted, plus a one-sentence problem statement + goal |
-| **PRD / spec** | Problem, scope (in/out), user stories with acceptance criteria, success metrics, risks — scales from a one-pager to a multi-module program doc; can also **reconstruct** a PRD from existing material (meeting notes, an old doc, a competitor's) |
-| **Slicing** | An idea broken into epics → user stories → tasks, INVEST-checked, with `Given/When/Then` acceptance criteria covering happy path **+ boundaries + failure** |
-| **Prioritization** | A ranked backlog via RICE / MoSCoW / Kano / Value-Effort / WSJF — with the scores and the reasoning shown, not just a verdict |
-| **Estimation & planning** | Story points, velocity, PERT three-point, sprint and release planning |
-| **Metrics** | A North Star + input + guardrail metrics, each with a baseline and target |
-| **Risk** | A probability × impact register with triggers, owners, and responses |
-| **Communication** | Stakeholder updates and decision docs tuned to the audience |
+| Discovery and framing | A clear problem statement, target user, goal, constraints, and explicit non-goals |
+| PRDs and specs | Problem, scope, user stories, acceptance criteria, success metrics, risks, and open questions |
+| Existing-doc cleanup | A reconstructed PRD from notes, old docs, or competitor material, with conflicts and assumptions surfaced |
+| Work slicing | Epics, user stories, tasks, and `Given / When / Then` acceptance criteria |
+| Prioritization | Ranked backlog using RICE, MoSCoW, Kano, Value/Effort, or WSJF, with reasoning shown |
+| Estimation and planning | Story points, release slices, sprint planning, PERT estimates, and dependency callouts |
+| Metrics | North Star, input, and guardrail metrics with baselines and targets |
+| Risk management | Probability x impact risk register with triggers, owners, and responses |
+| Stakeholder communication | Status updates and decision docs tuned to the audience |
 
-### When it activates
+It also includes a dedicated lens for AI/ML-driven features, including eval sets, thresholds,
+precision/recall tradeoffs, error-cost asymmetry, human review, and data dependencies.
 
-Whenever you're deciding **what to build or why** — writing a PRD, scoping an MVP, breaking
-down a feature, prioritizing a backlog, planning a sprint, defining metrics, or assessing
-risk. Also when you say *"act as a PM"* / *"put on the product hat"*, or start building
-something with no clear problem statement. It carries a dedicated lens for **AI/ML-driven
-features** (eval sets, precision/recall, error-cost asymmetry, human-in-the-loop).
+### When To Use It
 
-### Output language
+Use `technical-pm` when you are:
 
-Adapts to your language; **defaults to 中文** for the product artifacts, keeping only
-established framework terms (MoSCoW, RICE, MVP, PRD) in English.
+- turning a fuzzy idea into a PRD;
+- scoping an MVP;
+- breaking a feature into buildable stories;
+- deciding what to build next;
+- prioritizing a backlog;
+- estimating a sprint or release;
+- defining product metrics;
+- identifying delivery or product risks;
+- preparing stakeholder updates or decision docs.
 
-### Using it
+It should also trigger when someone asks the assistant to "act as a PM", "wear the product hat", or
+starts building without a clear problem statement and scope.
 
-1. Copy the `technical-pm/` folder into your skills directory (e.g. `~/.claude/skills/` for
-   Claude Code, or your platform's skills location).
-2. Start a conversation and either let it trigger automatically (it activates on
-   product/PM-shaped requests) or invoke it explicitly — e.g. `$technical-pm`, or
-   *"act as a technical PM and scope this feature."*
+### Output Language
 
-The skill reads `SKILL.md` first, then pulls the relevant files from `references/` and
-`assets/` on demand.
+The skill follows the user's language. For Chinese users, product artifacts default to Chinese while
+keeping established framework terms such as `MVP`, `PRD`, `RICE`, and `MoSCoW` in English.
 
----
+## Installation
 
-## Repo structure · 目录结构
+Copy the `technical-pm/` folder into the skills directory used by your assistant environment.
 
+For Claude Code, that is commonly:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R technical-pm ~/.claude/skills/
 ```
+
+Then start a new conversation and invoke the skill explicitly:
+
+```text
+$technical-pm
+```
+
+You can also phrase the request naturally, for example:
+
+```text
+Act as a technical PM and turn this feature idea into a scoped PRD.
+```
+
+The assistant reads `SKILL.md` first, then loads the relevant templates and references on demand.
+
+## Repository Structure
+
+```text
 skills/
 ├── README.md
+├── README_zh-CN.md
 └── technical-pm/
-    ├── SKILL.md                       # the skill's instructions + workflow router
+    ├── SKILL.md
     ├── agents/
-    │   └── openai.yaml                # interface manifest (display name, default prompt)
-    ├── assets/                        # fill-in templates
+    │   └── openai.yaml
+    ├── assets/
     │   ├── prd-template.md
-    │   ├── user-story-template.md
-    │   └── risk-register-template.md
-    └── references/                    # deep-dive references the skill loads on demand
-        ├── discovery-and-requirements.md
-        ├── technical-artifacts.md
+    │   ├── risk-register-template.md
+    │   └── user-story-template.md
+    └── references/
         ├── ai-ml-products.md
-        ├── prioritization-and-estimation.md
         ├── delivery-and-process.md
-        ├── metrics.md
+        ├── discovery-and-requirements.md
         ├── edge-cases-and-exceptions.md
+        ├── metrics.md
+        ├── prioritization-and-estimation.md
+        ├── technical-artifacts.md
         └── worked-example.md
 ```
 
----
+## Adding More Skills
 
-## 中文说明
-
-一组面向 Claude 的 **Agent Skills(技能包)**—— 可复用的能力模块,教模型用某种专业方式工作。
-每个技能都是一个自包含的文件夹,内含 `SKILL.md`(指令),以及它按需调用的模板和参考资料。
-
-本仓库目前包含一个技能:**`technical-pm`**。
-
-### `technical-pm` —— 技术产品经理
-
-让模型以资深**技术产品经理**的身份工作:它负责*做什么、为什么做*,而不只是怎么做。给它一个
-模糊的想法或原始需求,它会产出清晰、收敛、可落地的产品文档 —— 并且在产品思路理顺之前不会
-去写代码。
-
-**它能产出**
-
-| 你的需求 | 你会得到 |
-|---|---|
-| **需求发现与界定** | 先用 5 Whys / JTBD 挖出真正的问题,而不是直接接受某个"解决方案",并给出一句话问题陈述 + 目标 |
-| **PRD / 需求文档** | 问题、范围(做 / 不做)、带验收标准的用户故事、成功指标、风险;小到一页纸,大到多模块项目文档;也能把已有材料(会议纪要、旧文档、竞品)**重构**成 PRD |
-| **需求拆分** | 把想法拆成 史诗 → 用户故事 → 任务,过 INVEST 检查,验收标准用 `Given/When/Then` 覆盖正常 **+ 边界 + 异常** |
-| **优先级** | 用 RICE / MoSCoW / Kano / 价值-成本 / WSJF 排序,并给出打分和理由,而不只是结论 |
-| **估算与排期** | 故事点、速率、PERT 三点估算、迭代与版本规划 |
-| **指标** | 北极星 + 输入 + 护栏指标,每个都带基线与目标 |
-| **风险** | 概率 × 影响的风险登记册,带触发条件、负责人、应对策略 |
-| **沟通** | 按受众定制的干系人汇报与决策文档 |
-
-**什么时候触发**
-
-只要你在决定**做什么、为什么做**:写 PRD、界定 MVP、拆功能、排优先级、做迭代计划、定指标、
-评风险。或者你说"当个 PM""戴上产品的帽子",又或者还没想清问题就开始动手时。它对
-**AI / 模型驱动的功能** 有专门视角(评测集、精确率 / 召回率、错误代价不对称、人工兜底)。
-
-**产出语言**
-
-跟随你的语言,产品文档**默认中文**,只保留约定俗成的框架术语(MoSCoW、RICE、MVP、PRD)为英文。
-
-**如何使用**
-
-1. 把 `technical-pm/` 文件夹复制到你的技能目录(例如 Claude Code 的 `~/.claude/skills/`,
-   或你所用平台的技能位置)。
-2. 开始对话,让它自动触发(遇到产品 / PM 类请求时),或显式调用 —— 例如 `$technical-pm`,
-   或"用 technical-pm 把这个想法写成 PRD"。
-
-模型会先读 `SKILL.md`,再按需拉取相关的 `references/` 和 `assets/`。
+To add another skill, create a new top-level folder with at least a `SKILL.md`. Keep the skill
+self-contained: put reusable templates in `assets/`, detailed guidance in `references/`, and metadata
+in `agents/` only when a target assistant surface needs it.
