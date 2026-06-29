@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# JetBrains IDEs (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Logs & temp files
+*.log
+*.tmp
