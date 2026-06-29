@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD 审核"
+  short_description: "Audit a PRD's completeness & dev-readiness, output an HTML report"
+  default_prompt: "Use $prd-review to review this PRD: rate its completeness, decide if it can go to development, list what's missing, and produce an HTML report."

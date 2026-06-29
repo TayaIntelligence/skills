@@ -1,0 +1,421 @@
+<!doctype html>
+<!--
+  PRD 审核报告模板 — 给执行的 AI 的使用说明:
+  1. 复用整段 <style>(配色、卡片、徽标、进度条、打印样式都在里面),不要改类名。
+  2. 把 <body> 里的示例内容(发票 OCR 那份)整体替换成对目标 PRD 的真实评审。
+  3. 写报告的硬性要求(务必遵守):
+     - 说人话,不堆行话。北极星/护栏/直通率/needs_review/三元组/INVEST/MoSCoW 这类词,要么换成平实说法,
+       要么在同一句里解释清楚。只保留 MVP、PRD、AI 这种大家都懂的。
+     - 绝不出现 skill 内部文件路径(如"展开见 references/xxx.md""见 assets/xxx")。读者没有这些文件,
+       把真正的建议直接写进报告里。
+     - 完成度要用人话解释"为什么是这个数、具体缺了什么",不要只甩一个公式。
+     - 每个缺口的"怎么补"写成 2~4 条清晰、可直接照做的建议,不要写成一大段。
+     - 针对这份 PRD 的具体内容来写,引用它实际写了什么/在哪里没写,别写放之四海皆准的套话。
+  4. 裁决配色:把 <body class="..."> 设为 verdict-ready / verdict-conditional / verdict-blocked 之一。
+  5. 状态徽标:badge-ok/badge-warn/badge-miss/badge-na;严重度色条:card-blocker/card-important/card-suggest。
+  6. 输出为单文件,自包含,可离线打开、可打印。用完即删本注释。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRD 审核报告 · 发票 OCR 自动录入</title>
+<style>
+  :root{
+    --bg:#eef1f5; --card:#ffffff; --ink:#1f2430; --muted:#5b6472; --faint:#8a93a3;
+    --line:#e4e8ee; --brand:#4f46e5; --brand-soft:#eef0fe;
+    --ok:#15803d; --ok-bg:#ecfdf3; --ok-line:#bbe7c8;
+    --warn:#b45309; --warn-bg:#fff8eb; --warn-line:#f5dca0;
+    --miss:#c2410c; --miss-bg:#fff1ec; --miss-line:#f6c9b6;
+    --danger:#dc2626; --danger-bg:#fef2f2; --danger-line:#f3c4c4;
+    --info:#2563eb; --info-bg:#eff5ff; --info-line:#cbdcfb;
+    --radius:14px; --shadow:0 1px 2px rgba(20,30,50,.04),0 6px 20px rgba(20,30,50,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px;}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.01em;}
+  h2{font-size:18px;margin:38px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line);letter-spacing:-.01em;}
+  h3{font-size:15px;margin:0 0 6px;}
+  p{margin:0 0 10px;} a{color:var(--brand);}
+  .muted{color:var(--muted);} .faint{color:var(--faint);font-size:13px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+
+  .head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .head .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .tag{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:2px 10px;}
+  .tag.alt{background:var(--brand-soft);color:var(--brand);border-color:#d9ddfb;font-weight:600;}
+  .metabar{font-size:13px;color:var(--muted);text-align:right;}
+
+  .verdict{padding:22px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:18px;}
+  .verdict .row{display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+  .gauge{flex:0 0 auto;text-align:center;min-width:140px;}
+  .gauge .num{font-size:42px;font-weight:700;line-height:1;letter-spacing:-.02em;}
+  .gauge .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+  .bar{height:9px;border-radius:999px;background:#e7eaf0;overflow:hidden;margin-top:10px;}
+  .bar > i{display:block;height:100%;border-radius:999px;}
+  .vmain{flex:1;min-width:240px;}
+  .pill{display:inline-block;font-weight:700;font-size:15px;padding:6px 14px;border-radius:999px;margin-bottom:8px;}
+  .verdict-blocked .verdict{background:var(--danger-bg);border-color:var(--danger-line);}
+  .verdict-blocked .pill{background:var(--danger);color:#fff;}
+  .verdict-blocked .bar > i{background:var(--danger);}
+  .verdict-blocked .gauge .num{color:var(--danger);}
+  .verdict-conditional .verdict{background:var(--warn-bg);border-color:var(--warn-line);}
+  .verdict-conditional .pill{background:var(--warn);color:#fff;}
+  .verdict-conditional .bar > i{background:var(--warn);}
+  .verdict-conditional .gauge .num{color:var(--warn);}
+  .verdict-ready .verdict{background:var(--ok-bg);border-color:var(--ok-line);}
+  .verdict-ready .pill{background:var(--ok);color:#fff;}
+  .verdict-ready .bar > i{background:var(--ok);}
+  .verdict-ready .gauge .num{color:var(--ok);}
+
+  /* 审核总结 */
+  .summary{padding:18px 20px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line);
+    border-left:5px solid var(--brand);box-shadow:var(--shadow);}
+  .summary .h{font-weight:700;font-size:16px;margin-bottom:8px;}
+  .summary p{margin:0 0 10px;} .summary p:last-child{margin:0;}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:0 0 12px;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  table.score{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  table.score th,table.score td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.score th{background:#f8fafc;font-size:12px;color:var(--muted);font-weight:600;}
+  table.score tr:last-child td{border-bottom:none;}
+  .grp td{background:#f3f5f9;font-weight:700;font-size:13px;color:var(--ink);}
+  .badge{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+  .badge-ok{color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-line);}
+  .badge-warn{color:var(--warn);background:var(--warn-bg);border:1px solid var(--warn-line);}
+  .badge-miss{color:var(--miss);background:var(--miss-bg);border:1px solid var(--miss-line);}
+  .badge-na{color:var(--faint);background:#f4f5f7;border:1px solid var(--line);}
+  .sev{font-size:11px;font-weight:700;}
+  .sev-b{color:var(--danger);} .sev-i{color:var(--warn);} .sev-s{color:var(--info);}
+
+  .cards{display:flex;flex-direction:column;gap:12px;}
+  .gap{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);
+    border-radius:10px;padding:14px 16px 16px;box-shadow:var(--shadow);}
+  .gap h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .gap .where{font-size:12px;color:var(--faint);margin-left:auto;font-weight:400;}
+  .gap .lead{color:var(--muted);margin:6px 0 0;}
+  .fix{margin-top:10px;padding:10px 14px;background:#f8fafc;border-radius:8px;}
+  .fix .h{font-weight:700;color:var(--brand);font-size:13px;margin-bottom:4px;}
+  .fix ul{margin:0;padding-left:18px;} .fix li{margin:4px 0;}
+  .card-blocker{border-left-color:var(--danger);}
+  .card-important{border-left-color:var(--warn);}
+  .card-suggest{border-left-color:var(--info);}
+  .chip{font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;}
+  .chip-b{color:#fff;background:var(--danger);}
+  .chip-i{color:#fff;background:var(--warn);}
+  .chip-s{color:#fff;background:var(--info);}
+
+  .sec{padding:14px 16px;margin-bottom:10px;}
+  .sec h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .sec .body{font-size:14px;}
+  .sec .lab{font-size:12px;font-weight:700;color:var(--muted);}
+  .sec ul{margin:6px 0 0;padding-left:18px;} .sec li{margin:3px 0;}
+
+  .good{background:var(--ok-bg);border:1px solid var(--ok-line);border-radius:var(--radius);padding:14px 18px;}
+  .good ul{margin:6px 0 0;padding-left:18px;} .good li{margin:5px 0;}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;}
+  ol.steps li{counter-increment:s;position:relative;padding:12px 14px 12px 48px;background:var(--card);
+    border:1px solid var(--line);border-radius:10px;margin-bottom:8px;box-shadow:var(--shadow);}
+  ol.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:24px;height:24px;
+    background:var(--brand);color:#fff;border-radius:50%;text-align:center;line-height:24px;font-weight:700;font-size:13px;}
+  ol.steps .owner{font-size:12px;color:var(--faint);}
+
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--faint);}
+  @media print{ body{background:#fff;} .card,.verdict,table.score,.gap,.summary,ol.steps li{box-shadow:none;}
+    h2{break-after:avoid;} .gap,.sec,ol.steps li{break-inside:avoid;} }
+</style>
+</head>
+
+<!-- 裁决主题:verdict-blocked / verdict-conditional / verdict-ready -->
+<body class="verdict-blocked">
+<div class="wrap">
+
+  <!-- ========== 报告头 ========== -->
+  <div class="head">
+    <div>
+      <h1>PRD 审核报告</h1>
+      <div class="muted">发票 OCR 自动录入 · v0.3</div>
+      <div class="tags">
+        <span class="tag">功能类型:内部效率工具</span>
+        <span class="tag">需写入财务系统</span>
+        <span class="tag">用到 AI 识别</span>
+      </div>
+    </div>
+    <div class="metabar">
+      审核日期:2026-06-26<br>
+      共评估 20 个方面
+    </div>
+  </div>
+
+  <!-- ========== 总体裁决 ========== -->
+  <div class="verdict">
+    <div class="row">
+      <div class="gauge">
+        <div class="num">40<span style="font-size:22px">%</span></div>
+        <div class="lbl">完成度(指示性)</div>
+        <div class="bar"><i style="width:40%"></i></div>
+      </div>
+      <div class="vmain">
+        <span class="pill">暂不可交付开发</span>
+        <p style="margin:0">这份文档把功能想得挺清楚——问题、用户故事、优先级都立得住,是个不错的起点。但它还不是
+        一份能交给开发照着做的 PRD:每个故事只写了"一切顺利时"会怎样,识别结果要写进财务系统却没约定怎么写,
+        而作为一个 AI 功能,最关键的"识别要多准才算能用、识别错了怎么办"都还没有答案。下面会逐条说清楚,并给出
+        该怎么补。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 审核总结 ========== -->
+  <div class="summary">
+    <div class="h">审核总结</div>
+    <p>整体来看,这份文档的产品思路是对的——没有一上来就堆功能,而是先讲清了"财务每月手工录入发票,既慢又容易
+    出错"这个真实问题,用户故事也写得规范。差距集中在"开发要照着做"还缺的那一层:发票识别在现实里会遇到照片
+    模糊、字段缺失、金额识别不准,这些文档里一概没说怎么处理;识别结果要写进财务系统,但写哪些字段、什么格式、
+    出错了怎么办都没约定;最要紧的是,作为一个 AI 功能,它没有定义"识别准到什么程度才算合格",也没安排人工复核——
+    这意味着有可能把识别错的金额直接记进账。</p>
+    <p>至于完成度这个数字:它衡量的是"一份 PRD 该有的东西到位了多少",不是你写了多少工作量——功能部分其实写得
+    不少。40% 的意思是,上面这几样"开发前必须先定"的东西基本还空着,分主要扣在这里,而不是扣在你已经写好的功能上。
+    把它们补齐,这份文档很快就能到"可以开工"的程度。</p>
+  </div>
+
+  <!-- ========== 完成度概览 ========== -->
+  <h2>逐项评估</h2>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--ok)"></i>完整</span>
+    <span><i class="dot" style="background:var(--warn)"></i>部分</span>
+    <span><i class="dot" style="background:var(--miss)"></i>缺失</span>
+    <span><i class="dot" style="background:var(--faint)"></i>不适用</span>
+    <span style="margin-left:auto">严重度:<b class="sev-b">🔴必须补</b> · <b class="sev-i">🟡建议补</b> · <b class="sev-s">🔵可优化</b></span>
+  </div>
+  <table class="score">
+    <tr><th style="width:32%">评估项</th><th style="width:13%">情况</th><th style="width:9%">严重度</th><th>说明</th></tr>
+
+    <tr class="grp"><td colspan="4">问题与目标</td></tr>
+    <tr><td>一句话说清要解决的问题</td><td><span class="badge badge-ok">✅完整</span></td><td></td><td>清楚写出了财务每月手工录入耗时易错的痛点,谁受影响、有多痛都讲到了。</td></tr>
+    <tr><td>目标能衡量</td><td><span class="badge badge-ok">✅完整</span></td><td></td><td>"单张录入从 5 分钟降到 30 秒内",可以判定有没有达成。</td></tr>
+    <tr><td>说清楚哪些不做</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-i">🟡</span></td><td>提了"本期只做增值税专票",但普票、扫描件、外币这些边界没圈定。</td></tr>
+
+    <tr class="grp"><td colspan="4">范围与用户故事</td></tr>
+    <tr><td>用户故事(角色-目标-价值)</td><td><span class="badge badge-ok">✅完整</span></td><td></td><td>从用户视角写,粒度也合适,能在一个迭代内做完。</td></tr>
+    <tr><td>有可以验收的标准</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-i">🟡</span></td><td>有验收标准,但"自动填入对应字段"偏笼统,缺一个能核对的判据。</td></tr>
+    <tr><td>覆盖正常、边界与异常情况</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-b">🔴</span></td><td>清一色是顺利路径;照片模糊、字段缺失、识别不出、重复上传都没说怎么办。</td></tr>
+    <tr><td>优先级与最小可用版本</td><td><span class="badge badge-ok">✅完整</span></td><td></td><td>优先级清楚,先做专票再扩展,第一版范围合理。</td></tr>
+
+    <tr class="grp"><td colspan="4">成功指标</td></tr>
+    <tr><td>最核心的成功指标</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-i">🟡</span></td><td>拿"识别准确率"当成功,但它只是过程指标;内部工具更该看"省了多少人工"。</td></tr>
+    <tr><td>辅助指标与底线指标</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-i">🟡</span></td><td>没有不能踩的红线(如错误入账率),也没有当前基线数据。</td></tr>
+
+    <tr class="grp"><td colspan="4">技术约定(要写入财务系统,适用)</td></tr>
+    <tr><td>接口怎么传(输入输出)</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-b">🔴</span></td><td>要写入财务系统,却没说写哪些字段、什么格式、是否必填,也没有示例。</td></tr>
+    <tr><td>数据约定与错误分类</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-b">🔴</span></td><td>没分清"系统处理不了"(如文件加密/超大)和"处理了但需人工确认"两种情况。</td></tr>
+    <tr><td>性能等指标写成数字</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-i">🟡</span></td><td>没有单张处理时间、文件大小上限、超时这些可验收的数字。</td></tr>
+
+    <tr class="grp"><td colspan="4">AI 相关(核心靠识别,适用)</td></tr>
+    <tr><td>AI 质量标准与怎么衡量</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-b">🔴</span></td><td>给了"95%"目标,但没说用哪些发票、怎么量出来——是一句没法验证的承诺。</td></tr>
+    <tr><td>错认与漏认的代价</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-i">🟡</span></td><td>只有一个笼统准确率;"金额填错记进账"和"漏识需人工补"的代价没分开考虑。</td></tr>
+    <tr><td>人工复核机制与所需材料</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-b">🔴</span></td><td>全自动、没有人工复核;衡量准确率要用的"标准答案"发票也没安排。</td></tr>
+
+    <tr class="grp"><td colspan="4">流程与设计</td></tr>
+    <tr><td>关键流程与各种界面状态</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-s">🔵</span></td><td>有主流程,但"空白、出错、加载中、数据量极大"几种状态没设计。</td></tr>
+
+    <tr class="grp"><td colspan="4">排期与风险</td></tr>
+    <tr><td>排期估算与前置依赖</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-i">🟡</span></td><td>写了"1 个月",但没依据,"标准答案"数据也没作为开工前提排进去。</td></tr>
+    <tr><td>关键风险</td><td><span class="badge badge-warn">⚠️部分</span></td><td><span class="sev sev-i">🟡</span></td><td>提了"识别可能不准",但没写可能性、影响、谁负责、怎么应对。</td></tr>
+    <tr><td>待定问题与拍板人</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-b">🔴</span></td><td>"是否对接现有 ERP"等影响开工的问题悬而未决,没指定谁来拍板。</td></tr>
+
+    <tr class="grp"><td colspan="4">发布</td></tr>
+    <tr><td>发布策略与上线验证</td><td><span class="badge badge-miss">❌缺失</span></td><td><span class="sev sev-s">🔵</span></td><td>没写怎么发布,也没写上线后怎么确认省时和准确率达标。</td></tr>
+  </table>
+
+  <!-- ========== 必须补齐(阻断项) ========== -->
+  <h2>必须补齐(不补就没法开工)</h2>
+  <div class="cards">
+
+    <div class="gap card-blocker">
+      <h3><span class="chip chip-b">必须补</span> 验收标准只写了"一切顺利"的情况 <span class="where">对应:用户故事</span></h3>
+      <p class="lead">每条验收标准都是"上传 → 识别 → 填入"的顺利路径。但发票识别的麻烦恰恰在意外情况:照片模糊、
+      多张混在一起拍、某个字段是空的、金额栏识别不出、同一张传了两次。这些不说清楚,上线第一周就会变成线上问题。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>把每个故事的意外情况过一遍:照片模糊、字段缺失、识别不出、重复上传,各写一条明确的预期行为。</li>
+          <li>每条都写成"什么情况下 → 系统怎么做"。比如:税额识别不出时,这一栏留空并标"需人工确认",不要猜一个数填进去。</li>
+          <li>清楚告诉用户:哪些情况系统自动处理,哪些要他来补,而不是默默出错。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gap card-blocker">
+      <h3><span class="chip chip-b">必须补</span> 要写进财务系统,却没约定怎么写 <span class="where">对应:技术考量(空缺)</span></h3>
+      <p class="lead">功能要把识别结果填进财务系统,但没说清:写哪些字段、每个字段什么格式(金额几位小数、日期怎么写、
+      税号多少位)、哪些必填、某个字段空着到底是"本来就没有"还是"没识别出来"。这些不定下来,开发没法动手。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>列一张字段对照表:要写入的每个字段、类型、格式、是否必填、由谁提供。</li>
+          <li>给一个真实例子(填好的一条记录长什么样),让识别方和财务系统两边对齐。</li>
+          <li>特别说清"空值"的含义——是这张发票本就没有这项,还是没识别出来,两者后续处理完全不同。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gap card-blocker">
+      <h3><span class="chip chip-b">必须补</span> 没分清"系统出错"和"结果需要人工确认" <span class="where">对应:技术考量</span></h3>
+      <p class="lead">加密的 PDF、超大或损坏的文件,这种"系统根本处理不了"的情况,和"识别出来了但拿不准、需要人工看
+      一眼"的情况,处理方式完全不同。文档没区分,结果要么对本来能救的情况直接报错,要么把不靠谱的数据悄悄记进账。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>分两类分别定行为。第一类"系统处理不了"(加密/损坏/过大):明确报错,并提示用户重新上传。</li>
+          <li>第二类"处理了但拿不准"(识别把握低、信息不全):结果照常返回,但标"需人工复核",人确认后再入账。</li>
+          <li>两类各自列出:什么情况触发、系统怎么响应、之后谁来接手。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gap card-blocker">
+      <h3><span class="chip chip-b">必须补</span> 作为 AI 功能,没定"多准算合格",也没安排人工兜底 <span class="where">对应:成功指标 / 技术 / 排期</span></h3>
+      <p class="lead">"准确率 95%"听着明确,但没说这个数怎么量、拿什么发票来量,等于一句没法验证的承诺;而且整个流程
+      全自动、没有人工复核,意味着识别错的金额会直接进账。再者,要量准确率就得先有一批"标准答案"发票和字段对照规则,
+      这些材料没到位,开发既测不了也开不了工——AI 项目最常卡在这,文档里却没提。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>先准备一批"标准答案":几十张真实发票,人工标好正确字段,作为衡量识别准不准的尺子。</li>
+          <li>把"准确率 95%"改成可验证的说法:在这批发票上,关键字段识别准确率达到多少才算过关。</li>
+          <li>加入人工复核:有把握的自动填,没把握的标出来让人确认;拿不准的字段留空,绝不编一个。</li>
+          <li>把"标准答案发票、字段对照规则表"当成开工前必须先备好的材料,指定谁负责、什么时候交。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 建议完善 ========== -->
+  <h2>建议完善</h2>
+  <div class="cards">
+    <div class="gap card-important">
+      <h3><span class="chip chip-i">建议补</span> 成功指标选错了,而且没有底线 <span class="where">对应:成功指标</span></h3>
+      <p class="lead">这是个帮财务省事的内部工具,"识别准确率"只是过程指标,衡量不了真正的价值;而且光追准确率,
+      容易靠"多录点数据"刷上去。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>核心指标换成能体现价值的:比如"识别后无需人工修改就能直接用的比例",或"每周帮财务省下多少小时"。</li>
+          <li>加一条不能踩的红线:错误入账率不能上升、人工复核的工作量应真的下降,而不是从录入转移到复核。</li>
+          <li>每个指标先量出当前水平(没有就先统计一段时间),再定目标。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="gap card-important">
+      <h3><span class="chip chip-i">建议补</span> 风险没人负责,工期估算没依据 <span class="where">对应:排期 / 风险</span></h3>
+      <p class="lead">"识别可能不准"只点了一句,没说怎么应对、谁来盯;"1 个月上线"在"标准答案"数据还没备好时,
+      是个没底气的数字。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>每条风险补上:发生的可能性和影响、谁负责、真出现了怎么办。</li>
+          <li>工期给一个区间,并写明前提:比如"标准答案数据到位后,3 到 4 个迭代",而不是一个默认材料都齐了的死日期。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="gap card-important">
+      <h3><span class="chip chip-i">建议补</span> "快、稳"要落成具体数字 <span class="where">对应:技术考量</span></h3>
+      <p class="lead">"快""稳"没法验收。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>写成能测的数字,并作为验收标准:单张识别多少秒内完成、单个文件最大多大、多久没响应算超时。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="gap card-suggest">
+      <h3><span class="chip chip-s">可优化</span> 界面只画了正常情况,缺上线后的验证计划 <span class="where">对应:设计 / 发布</span></h3>
+      <p class="lead">只设计了一切正常时的样子;上线后怎么确认指标达成也没写。</p>
+      <div class="fix">
+        <div class="h">怎么补</div>
+        <ul>
+          <li>给关键页面补上"空白、出错、加载中、数据量极大"几种状态。</li>
+          <li>写清怎么发(先小范围试用还是全量)、上线后看哪些数据确认省时和准确率达标。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 逐节点评 ========== -->
+  <h2>逐节点评</h2>
+
+  <div class="sec card">
+    <h3>背景与问题 <span class="badge badge-ok">✅完整</span></h3>
+    <div class="body">
+      问题讲得清楚,谁受影响、为什么痛都到位了。
+      <ul><li>可以再补一句量化现状(每月多少张、单张多久、错误率多少),让后面的目标和投入产出有个参照。</li></ul>
+    </div>
+  </div>
+
+  <div class="sec card">
+    <h3>成功指标 <span class="badge badge-warn">⚠️部分</span></h3>
+    <div class="body">
+      把识别准确率当成了产品成功,缺了能体现价值的指标和底线。
+      <ul>
+        <li>核心指标换成"省了多少人工 / 无需修改即可用的比例";</li>
+        <li>补一条底线:错误入账率、人工复核工时;</li>
+        <li>每个指标先有当前数据再定目标。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec card">
+    <h3>用户故事 <span class="badge badge-warn">⚠️部分</span></h3>
+    <div class="body">
+      故事写得规范、优先级清楚,这是亮点。差距是验收标准只有顺利路径(见上面"必须补"第一条),且有些标准不好核对。
+      <ul><li>给"自动填入"补上能核对的判据:填入哪些字段、没把握的字段怎么标、用户怎么确认。</li></ul>
+    </div>
+  </div>
+
+  <div class="sec card">
+    <h3>技术考量 <span class="badge badge-miss">❌缺失</span></h3>
+    <div class="body">
+      这是这份文档最大的空缺,也是最该补的地方:接口怎么传、数据怎么约定、出错怎么分类、性能写成数字,这四样都没有
+      (见上面"必须补"的第二、三条和"建议补"里的性能项)。建议把这一节重写成"和财务系统怎么对接"的具体约定。
+    </div>
+  </div>
+
+  <!-- ========== 亮点 ========== -->
+  <h2>做得好的部分</h2>
+  <div class="good">
+    <ul>
+      <li>没有一上来就堆功能,而是先把要解决的问题讲清楚——产品思路的起点是对的。</li>
+      <li>用户故事从用户视角写,粒度合适,优先级和第一版范围都清楚。</li>
+      <li>对范围有收敛意识(先做专票,不贪多)。</li>
+    </ul>
+    <p class="muted" style="margin:8px 0 0">缺的几乎都集中在"技术怎么落地"和"AI 怎么保证质量"这两块。补上之后,
+    这份文档就能从一份产品想法,变成开发可以放心照着做的 PRD。</p>
+  </div>
+
+  <!-- ========== 下一步 ========== -->
+  <h2>下一步(按优先级)</h2>
+  <ol class="steps">
+    <li><b>补四个必须项</b>:意外情况的验收标准、和财务系统的接口与数据约定、错误分类、AI 的质量标准与人工复核。
+      <span class="owner">建议负责人:产品 + 工程接口人,本周内</span></li>
+    <li><b>定下"标准答案"数据</b>:确认那批标好字段的发票和对照规则由谁提供、什么时候到位——它决定了能不能开工。
+      <span class="owner">负责人:产品,3 天内拍板</span></li>
+    <li><b>修正指标</b>:核心指标换成"省时/可用比例",加上底线指标,并开始统计当前水平。
+      <span class="owner">负责人:产品</span></li>
+    <li><b>补齐建议项和界面各种状态</b>,完成后再评一次——预计可以到"有条件交付"。
+      <span class="owner">负责人:产品</span></li>
+  </ol>
+
+  <footer>
+    本报告对照技术产品经理的标准做法,对文档逐项评估而成。完成度是一个指示性数值,衡量的是"作为一份 PRD 的完整度",
+    不代表功能工作量;能否交付开发,以是否还有"必须补"的项为准。
+  </footer>
+
+</div>
+</body>
+</html>
