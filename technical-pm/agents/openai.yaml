@@ -1,4 +1,0 @@
-interface:
-  display_name: "Technical PM"
-  short_description: "Turn fuzzy ideas into scoped product plans"
-  default_prompt: "Use $technical-pm to turn this feature idea into a scoped PRD with success metrics and risks."

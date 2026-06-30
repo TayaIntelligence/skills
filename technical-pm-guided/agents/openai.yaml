@@ -1,4 +1,0 @@
-interface:
-  display_name: "Technical PM (Guided)"
-  short_description: "Learn technical-pm step by step through guided practice"
-  default_prompt: "Use $technical-pm-guided to learn PM skills through hands-on, step-by-step coaching."

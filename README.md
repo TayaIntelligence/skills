@@ -4,7 +4,7 @@ A collection of **Agent Skills** for Claude — reusable capability packs that t
 assistant a specialized way of working. Each skill is a self-contained folder with a
 `SKILL.md` (instructions), plus the templates and references it pulls from on demand.
 
-This repo currently ships one skill: **`technical-pm`**.
+This repo currently ships two skills: **`technical-pm`** and **`technical-pm-guided`**.
 
 > 📖 English below · [中文说明见下半部分 ↓](#中文说明)
 
@@ -56,28 +56,73 @@ The skill reads `SKILL.md` first, then pulls the relevant files from `references
 
 ---
 
+## `technical-pm-guided` — Guided Learning for technical-pm
+
+A **Socratic-coaching companion** for the `technical-pm` skill. Instead of producing PM artifacts
+for the user, it teaches users how to produce them themselves — one workflow step at a time,
+with hands-on practice, feedback, and progressive hints.
+
+### How it differs from `technical-pm`
+
+| | `technical-pm` | `technical-pm-guided` |
+|---|---|---|
+| **Role** | PM practitioner — produces artifacts directly | PM coach — teaches through guided practice |
+| **Trigger** | "Write a PRD", "Prioritize this", "Break this down" | "Teach me how to write a PRD", "Walk me through slicing", "I'm new to this" |
+| **Output** | Finished PRD / stories / backlog / metrics | User produces their own artifact, coach gives feedback |
+| **Pacing** | Efficient — delivers the result | Socratic — one question per turn, waits for response |
+
+### What it teaches
+
+Walks users through the 8 `technical-pm` workflows (Discovery → PRD → Slicing →
+Prioritization → Estimation → Metrics → Risk → Communication), matching its query type to the
+user's intent:
+
+- **"Teach me how to do X"** — step-by-step, hands-on practice with the user's real case
+- **"What is product management?"** — brief overview + 2–3 entry points to pick from
+- **"What does RICE mean?"** — short definition + invitation to practice with it
+
+### Design principles
+
+Informed by ChatGPT Study Mode and Gemini Guided Learning:
+1. One step at a time — never dump the entire methodology at once
+2. Guide, don't produce — the user writes first, the coach gives feedback
+3. Progress over purity — after 2–3 failed attempts, demonstrate directly
+4. Practice over theory — teach through the user's real case, not abstract explanations
+
+### Using it
+
+Copy both `technical-pm/` and `technical-pm-guided/` to your skills directory. Start with
+*"Teach me how to write a PRD"* or *"Walk me through breaking down a feature."* It activates
+automatically on learning-intent language, or invoke explicitly with `$technical-pm-guided`.
+
+---
+
 ## Repo structure · 目录结构
 
 ```
 skills/
 ├── README.md
-└── technical-pm/
-    ├── SKILL.md                       # the skill's instructions + workflow router
-    ├── agents/
-    │   └── openai.yaml                # interface manifest (display name, default prompt)
-    ├── assets/                        # fill-in templates
-    │   ├── prd-template.md
-    │   ├── user-story-template.md
-    │   └── risk-register-template.md
-    └── references/                    # deep-dive references the skill loads on demand
-        ├── discovery-and-requirements.md
-        ├── technical-artifacts.md
-        ├── ai-ml-products.md
-        ├── prioritization-and-estimation.md
-        ├── delivery-and-process.md
-        ├── metrics.md
-        ├── edge-cases-and-exceptions.md
-        └── worked-example.md
+├── technical-pm/
+│   ├── SKILL.md                       # the skill's instructions + workflow router
+│   ├── agents/
+│   │   └── openai.yaml                # interface manifest (display name, default prompt)
+│   ├── assets/                        # fill-in templates
+│   │   ├── prd-template.md
+│   │   ├── user-story-template.md
+│   │   └── risk-register-template.md
+│   └── references/                    # deep-dive references the skill loads on demand
+│       ├── discovery-and-requirements.md
+│       ├── technical-artifacts.md
+│       ├── ai-ml-products.md
+│       ├── prioritization-and-estimation.md
+│       ├── delivery-and-process.md
+│       ├── metrics.md
+│       ├── edge-cases-and-exceptions.md
+│       └── worked-example.md
+└── technical-pm-guided/
+    ├── SKILL.md                       # guided-learning Socratic coach for technical-pm
+    └── agents/
+        └── openai.yaml                # interface manifest
 ```
 
 ---
@@ -87,7 +132,7 @@ skills/
 一组面向 Claude 的 **Agent Skills(技能包)**—— 可复用的能力模块,教模型用某种专业方式工作。
 每个技能都是一个自包含的文件夹,内含 `SKILL.md`(指令),以及它按需调用的模板和参考资料。
 
-本仓库目前包含一个技能:**`technical-pm`**。
+本仓库目前包含两个技能:**`technical-pm`** 和 **`technical-pm-guided`**。
 
 ### `technical-pm` —— 技术产品经理
 
@@ -126,3 +171,37 @@ skills/
    或"用 technical-pm 把这个想法写成 PRD"。
 
 模型会先读 `SKILL.md`,再按需拉取相关的 `references/` 和 `assets/`。
+
+### `technical-pm-guided` —— 引导式学习 technical-pm
+
+`technical-pm` 的**苏格拉底式教学教练**。它不替你产出 PM 文档,而是教你**自己掌握**这些方法
+——一次一个步骤,边练边学,给你反馈和渐进提示。
+
+**它和 `technical-pm` 的区别**
+
+| | `technical-pm` | `technical-pm-guided` |
+|---|---|---|
+| **角色** | PM 实践者 — 直接产出 | PM 教练 — 引导式教学 |
+| **触发** | "写个PRD""排一下优先级""把这个拆了" | "教我怎么写PRD""带我走一遍拆需求""我是新手" |
+| **产出** | 成品的 PRD / 故事列表 / 排期表 | 用户自己写,教练给反馈 |
+| **节奏** | 高效 — 直接交付 | 苏格拉底式 — 一轮一个问题,等你回应 |
+
+**教什么**
+
+覆盖 `technical-pm` 的 8 个工作流,根据用户意图路由:
+- **"教我做 X"** — 一步一步带,拿用户的真实案例练手
+- **"产品规划是什么"** — 简短全景 + 2-3 个入口任选
+- **"RICE 是什么意思"** — 简短定义 + 邀请实际练一下
+
+**设计参考**
+
+借鉴了 ChatGPT Study Mode 和 Gemini Guided Learning 的设计理念:
+1. 一次一步 — 绝不一次性倒出整套方法论
+2. 引导而非代劳 — 用户先写,教练后反馈
+3. 卡住就兜底 — 2-3 轮答不上来就直接示范
+4. 练习优于讲解 — 用用户自己的真实案例来教,不空讲理论
+
+**如何使用**
+
+把 `technical-pm/` 和 `technical-pm-guided/` 都复制到技能目录。说"教我怎么写 PRD"或
+"带我走一遍需求拆分"即可触发。遇到学习意图的措辞会自动激活,或显式输入 `$technical-pm-guided`。
