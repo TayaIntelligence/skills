@@ -47,7 +47,10 @@ established framework terms (MoSCoW, RICE, MVP, PRD) in English.
 
 1. Copy the `technical-pm/` folder into your skills directory (e.g. `~/.claude/skills/` for
    Claude Code, or your platform's skills location).
-2. Start a conversation and either let it trigger automatically (it activates on
+2. Install via directory junction/symlink so each sub-skill resolves correctly: link
+   `technical-pm/direct/` → `.claude/skills/technical-pm` and `technical-pm/guided/` →
+   `.claude/skills/technical-pm-guided`.
+3. Start a conversation and either let it trigger automatically (it activates on
    product/PM-shaped requests) or invoke it explicitly — e.g. `$technical-pm`, or
    *"act as a technical PM and scope this feature."*
 
@@ -91,7 +94,7 @@ Informed by ChatGPT Study Mode and Gemini Guided Learning:
 
 ### Using it
 
-Copy both `technical-pm/` and `technical-pm-guided/` to your skills directory. Start with
+Install both sub-skills via junction (see `technical-pm` > Using it step 2 above). Start with
 *"Teach me how to write a PRD"* or *"Walk me through breaking down a feature."* It activates
 automatically on learning-intent language, or invoke explicitly with `$technical-pm-guided`.
 
@@ -102,27 +105,29 @@ automatically on learning-intent language, or invoke explicitly with `$technical
 ```
 skills/
 ├── README.md
-├── technical-pm/
-│   ├── SKILL.md                       # the skill's instructions + workflow router
-│   ├── agents/
-│   │   └── openai.yaml                # interface manifest (display name, default prompt)
-│   ├── assets/                        # fill-in templates
-│   │   ├── prd-template.md
-│   │   ├── user-story-template.md
-│   │   └── risk-register-template.md
-│   └── references/                    # deep-dive references the skill loads on demand
-│       ├── discovery-and-requirements.md
-│       ├── technical-artifacts.md
-│       ├── ai-ml-products.md
-│       ├── prioritization-and-estimation.md
-│       ├── delivery-and-process.md
-│       ├── metrics.md
-│       ├── edge-cases-and-exceptions.md
-│       └── worked-example.md
-└── technical-pm-guided/
-    ├── SKILL.md                       # guided-learning Socratic coach for technical-pm
-    └── agents/
-        └── openai.yaml                # interface manifest
+├── .gitignore
+└── technical-pm/
+    ├── direct/
+    │   ├── SKILL.md                    # 直接产出 PM 文档（原 technical-pm）
+    │   └── agents/
+    │       └── openai.yaml             # interface manifest
+    ├── guided/
+    │   ├── SKILL.md                    # 苏格拉底式引导学习教练
+    │   └── agents/
+    │       └── openai.yaml             # interface manifest
+    ├── assets/                         # 共享模板
+    │   ├── prd-template.md
+    │   ├── user-story-template.md
+    │   └── risk-register-template.md
+    └── references/                     # 共享参考资料
+        ├── discovery-and-requirements.md
+        ├── technical-artifacts.md
+        ├── ai-ml-products.md
+        ├── prioritization-and-estimation.md
+        ├── delivery-and-process.md
+        ├── metrics.md
+        ├── edge-cases-and-exceptions.md
+        └── worked-example.md
 ```
 
 ---
@@ -167,7 +172,9 @@ skills/
 
 1. 把 `technical-pm/` 文件夹复制到你的技能目录(例如 Claude Code 的 `~/.claude/skills/`,
    或你所用平台的技能位置)。
-2. 开始对话,让它自动触发(遇到产品 / PM 类请求时),或显式调用 —— 例如 `$technical-pm`,
+2. 用目录联结/符号链接安装子技能:将 `technical-pm/direct/` 链接到 `.claude/skills/technical-pm`,
+   将 `technical-pm/guided/` 链接到 `.claude/skills/technical-pm-guided`。
+3. 开始对话,让它自动触发(遇到产品 / PM 类请求时),或显式调用 —— 例如 `$technical-pm`,
    或"用 technical-pm 把这个想法写成 PRD"。
 
 模型会先读 `SKILL.md`,再按需拉取相关的 `references/` 和 `assets/`。
@@ -203,5 +210,5 @@ skills/
 
 **如何使用**
 
-把 `technical-pm/` 和 `technical-pm-guided/` 都复制到技能目录。说"教我怎么写 PRD"或
+通过联结安装两个子技能(见上文 `technical-pm` > 使用方式的第 2 步)。说"教我怎么写 PRD"或
 "带我走一遍需求拆分"即可触发。遇到学习意图的措辞会自动激活,或显式输入 `$technical-pm-guided`。
