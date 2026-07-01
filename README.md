@@ -7,8 +7,8 @@ A collection of reusable **Agent Skills** for Claude (Claude Code / Claude.ai / 
 other AI tools that can load Markdown instructions, such as Codex. Each skill is a self-contained
 folder with a `SKILL.md` instruction file, plus the templates and references it loads on demand.
 
-This repository ships two skills: **`technical-pm`** (write a PRD) and **`prd-review`** (audit a PRD
-someone already wrote).
+This repository ships three skills: **`technical-pm`** (write a PRD), **`prd-review`** (audit a PRD
+someone already wrote), and **`technical-pm-guided`** (learn PM skills step by step).
 
 ## `technical-pm` - Technical Product Manager
 
@@ -85,6 +85,50 @@ Use `prd-review` when you want to **review, grade, or sanity-check an existing P
 one, for example "审一下这份 PRD", "这份需求能交开发吗", "PRD 还缺什么", or "is this spec ready for
 dev". Trigger it on evaluating a PRD someone already wrote, not on drafting a new one.
 
+## `technical-pm-guided` - Guided Learning for technical-pm
+
+`technical-pm-guided` is a **Socratic-coaching companion** for the `technical-pm` skill. Instead of
+producing PM artifacts for the user, it teaches users how to produce them themselves — one workflow
+step at a time, with hands-on practice, feedback, and progressive hints.
+
+It uses the same body of knowledge as `technical-pm` (`references/` and `assets/`) but inverts it:
+those files define *how a good PM artifact is made*, and the guided mode walks the user through
+creating each one themselves.
+
+### How It Differs from `technical-pm`
+
+| | `technical-pm` | `technical-pm-guided` |
+|---|---|---|
+| **Role** | PM practitioner — produces artifacts directly | PM coach — teaches through guided practice |
+| **Trigger** | "Write a PRD", "Prioritize this", "Break this down" | "Teach me how to write a PRD", "Walk me through slicing", "I'm new to this" |
+| **Output** | Finished PRD / stories / backlog / metrics | User produces their own artifact, coach gives feedback |
+| **Pacing** | Efficient — delivers the result | Socratic — one question per turn, waits for response |
+
+### What It Teaches
+
+The skill walks users through the 8 `technical-pm` workflows (Discovery → PRD → Slicing →
+Prioritization → Estimation → Metrics → Risk → Communication), matching its opening strategy to the
+user's intent:
+
+- **Convergent** ("Teach me how to do X") — step-by-step, hands-on practice with the user's real case
+- **Divergent** ("What is product management?") — brief overview + 2–3 entry points to pick from
+- **Simple recall** ("What does RICE mean?") — short definition + invitation to practice with it
+
+### Design Principles
+
+Informed by ChatGPT Study Mode and Gemini Guided Learning:
+
+1. One step at a time — never dump the entire methodology at once
+2. Guide, don't produce — the user writes first, the coach gives feedback
+3. Progress over purity — after 2–3 failed attempts, demonstrate directly
+4. Practice over theory — teach through the user's real case, not abstract explanations
+
+### When To Use It
+
+Use `technical-pm-guided` when someone wants to **learn** PM skills rather than get a finished
+artifact. Triggers include "教我怎么写 PRD", "带我走一遍需求拆分", "我是新手", "不会排优先级",
+"teach me how to...", "walk me through...", or "I'm new to this".
+
 ## Installing Into Claude Code
 
 Copy a skill folder into Claude Code's skills directory:
@@ -93,6 +137,7 @@ Copy a skill folder into Claude Code's skills directory:
 mkdir -p "$HOME/.claude/skills"
 cp -R technical-pm "$HOME/.claude/skills/technical-pm"
 cp -R prd-review "$HOME/.claude/skills/prd-review"
+cp -R technical-pm-guided "$HOME/.claude/skills/technical-pm-guided"
 ```
 
 Then start a new conversation and either let a skill trigger automatically on product/PM-shaped
@@ -101,6 +146,7 @@ requests, or invoke it explicitly:
 ```text
 $technical-pm
 $prd-review
+$technical-pm-guided
 ```
 
 Example prompts:
@@ -112,15 +158,16 @@ Review this PRD and tell me whether it is ready for development.
 
 ## Other AI Tools
 
-Load a skill's `SKILL.md` (`technical-pm/SKILL.md` or `prd-review/SKILL.md`) as the system
-instruction. The skill will pull relevant files from `references/` and `assets/` on demand. For
-Codex-style UIs, each skill's `agents/openai.yaml` provides display metadata and a default prompt.
+Load a skill's `SKILL.md` (`technical-pm/SKILL.md`, `prd-review/SKILL.md`, or
+`technical-pm-guided/SKILL.md`) as the system instruction. The skill will pull relevant files from
+`references/` and `assets/` on demand.
 
 ## Repository Structure
 
 ```text
 skills/
 ├── .gitignore
+├── LICENSE
 ├── README.md
 ├── README.zh-CN.md
 ├── technical-pm/
@@ -140,26 +187,43 @@ skills/
 │       ├── prioritization-and-estimation.md
 │       ├── technical-artifacts.md
 │       └── worked-example.md
-└── prd-review/
-    ├── SKILL.md                       # instructions and rubric router
+├── prd-review/
+│   ├── SKILL.md                       # instructions and rubric router
+│   ├── agents/
+│   │   └── openai.yaml
+│   ├── assets/                        # templates and the HTML report shell
+│   │   ├── prd-template.md
+│   │   ├── report-template.html
+│   │   ├── risk-register-template.md
+│   │   └── user-story-template.md
+│   └── references/                    # the rubric and standards the review judges against
+│       ├── ai-ml-products.md
+│       ├── delivery-and-process.md
+│       ├── discovery-and-requirements.md
+│       ├── edge-cases-and-exceptions.md
+│       ├── metrics.md
+│       ├── prioritization-and-estimation.md
+│       ├── review-rubric.md
+│       ├── technical-artifacts.md
+│       ├── worked-example.md
+│       └── worked-review-example.md
+└── technical-pm-guided/
+    ├── SKILL.md                       # Socratic coaching instructions
     ├── agents/
-    │   └── openai.yaml                # display name and default prompt for Codex-style UIs
-    ├── assets/                        # templates and the HTML report shell
+    │   └── openai.yaml
+    ├── assets/                        # shared templates (same as technical-pm)
     │   ├── prd-template.md
-    │   ├── report-template.html
     │   ├── risk-register-template.md
     │   └── user-story-template.md
-    └── references/                    # the rubric and standards the review judges against
+    └── references/                    # shared references (same as technical-pm)
         ├── ai-ml-products.md
         ├── delivery-and-process.md
         ├── discovery-and-requirements.md
         ├── edge-cases-and-exceptions.md
         ├── metrics.md
         ├── prioritization-and-estimation.md
-        ├── review-rubric.md
         ├── technical-artifacts.md
-        ├── worked-example.md
-        └── worked-review-example.md
+        └── worked-example.md
 ```
 
 ## Conventions
