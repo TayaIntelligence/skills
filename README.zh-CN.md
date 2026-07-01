@@ -4,7 +4,7 @@
 
 一组可复用的 **Agent Skills（技能包）**，适用于 Claude（Claude Code / Claude.ai / Claude API）以及其他可加载 Markdown 指令的 AI 工具，例如 Codex。每个技能都是一个自包含的文件夹，包含 `SKILL.md` 指令文件，以及它按需加载的模板和参考资料。
 
-本仓库包含两个技能：**`technical-pm`**（写 PRD）和 **`prd-review`**（审别人已经写好的 PRD）。
+本仓库包含三个技能：**`technical-pm`**（写 PRD）、**`prd-review`**（审 PRD）和 **`technical-pm-guided`**（一步步学 PM 技能）。
 
 ## `technical-pm` - 技术产品经理
 
@@ -66,6 +66,42 @@
 
 当你想**审核、打分或体检一份已有的 PRD**，而不是从零写一份时，使用 `prd-review`，例如“审一下这份 PRD”“这份需求能交开发吗”“PRD 还缺什么”“is this spec ready for dev”。它触发于评审别人已经写好的 PRD，而不是起草新文档。
 
+## `technical-pm-guided` - 引导式学习 technical-pm
+
+`technical-pm-guided` 是 `technical-pm` 的**苏格拉底式教学教练**。它不替你产出 PM 文档，而是教你**自己掌握**这些方法——一次一个步骤，边练边学，给你反馈和渐进提示。
+
+它使用与 `technical-pm` 相同的知识体系（`references/` 和 `assets/`），但反过来：那些文件定义了*一份好的 PM 产物该怎么写*，引导模式带你一步步亲手做出每一份。
+
+### 与 `technical-pm` 的区别
+
+| | `technical-pm` | `technical-pm-guided` |
+|---|---|---|
+| **角色** | PM 实践者 — 直接产出 | PM 教练 — 引导式教学 |
+| **触发** | "写个 PRD""排一下优先级""把这个拆了" | "教我怎么写 PRD""带我走一遍拆需求""我是新手" |
+| **产出** | 成品的 PRD / 故事列表 / 排期表 | 用户自己写，教练给反馈 |
+| **节奏** | 高效 — 直接交付 | 苏格拉底式 — 一轮一个问题，等你回应 |
+
+### 教什么
+
+覆盖 `technical-pm` 的 8 个工作流（需求发现 → PRD → 拆分 → 排序 → 估算 → 指标 → 风险 → 沟通），根据用户意图匹配开场策略：
+
+- **收敛型**（"教我做 X"）— 一步一步带，拿用户的真实案例练手
+- **发散型**（"产品规划是什么"）— 简短全景 + 2-3 个入口任选
+- **简单事实型**（"RICE 是什么意思"）— 简短定义 + 邀请实际练一下
+
+### 设计理念
+
+借鉴了 ChatGPT Study Mode 和 Gemini Guided Learning：
+
+1. 一次一步 — 绝不一次性倒出整套方法论
+2. 引导而非代劳 — 用户先写，教练后反馈
+3. 卡住就兜底 — 2-3 轮答不上来就直接示范
+4. 练习优于讲解 — 用用户自己的真实案例来教，不空讲理论
+
+### 什么时候使用
+
+当有人想**学会** PM 技能，而不是拿一份成品文档时，使用 `technical-pm-guided`。触发词包括"教我怎么写 PRD""带我走一遍需求拆分""我是新手""不会排优先级""teach me how to...""walk me through..."等。
+
 ## 安装到 Claude Code
 
 把技能目录复制到 Claude Code 的 skills 目录：
@@ -74,6 +110,7 @@
 mkdir -p "$HOME/.claude/skills"
 cp -R technical-pm "$HOME/.claude/skills/technical-pm"
 cp -R prd-review "$HOME/.claude/skills/prd-review"
+cp -R technical-pm-guided "$HOME/.claude/skills/technical-pm-guided"
 ```
 
 然后开启新对话，让技能在产品 / PM 类请求中自动触发，或显式调用：
@@ -81,6 +118,7 @@ cp -R prd-review "$HOME/.claude/skills/prd-review"
 ```text
 $technical-pm
 $prd-review
+$technical-pm-guided
 ```
 
 示例：
@@ -92,13 +130,14 @@ $prd-review
 
 ## 其他 AI 工具
 
-将某个技能的 `SKILL.md`（`technical-pm/SKILL.md` 或 `prd-review/SKILL.md`）作为系统指令加载。技能会在需要时按需拉取 `references/` 和 `assets/` 中的文件。如果使用 Codex 风格的 UI，每个技能的 `agents/openai.yaml` 提供展示名称和默认提示词。
+将某个技能的 `SKILL.md`（`technical-pm/SKILL.md`、`prd-review/SKILL.md` 或 `technical-pm-guided/SKILL.md`）作为系统指令加载。技能会在需要时按需拉取 `references/` 和 `assets/` 中的文件。如果使用 Codex 风格的 UI，每个技能的 `agents/openai.yaml` 提供展示名称和默认提示词。
 
 ## 仓库结构
 
 ```text
 skills/
 ├── .gitignore
+├── LICENSE
 ├── README.md
 ├── README.zh-CN.md
 ├── technical-pm/
@@ -118,26 +157,43 @@ skills/
 │       ├── prioritization-and-estimation.md
 │       ├── technical-artifacts.md
 │       └── worked-example.md
-└── prd-review/
-    ├── SKILL.md                       # 指令与评审路由
+├── prd-review/
+│   ├── SKILL.md                       # 指令与评审路由
+│   ├── agents/
+│   │   └── openai.yaml
+│   ├── assets/                        # 模板与 HTML 报告框架
+│   │   ├── prd-template.md
+│   │   ├── report-template.html
+│   │   ├── risk-register-template.md
+│   │   └── user-story-template.md
+│   └── references/                    # 评审据以打分的标准
+│       ├── ai-ml-products.md
+│       ├── delivery-and-process.md
+│       ├── discovery-and-requirements.md
+│       ├── edge-cases-and-exceptions.md
+│       ├── metrics.md
+│       ├── prioritization-and-estimation.md
+│       ├── review-rubric.md
+│       ├── technical-artifacts.md
+│       ├── worked-example.md
+│       └── worked-review-example.md
+└── technical-pm-guided/
+    ├── SKILL.md                       # 苏格拉底式教学指令
     ├── agents/
-    │   └── openai.yaml                # Codex 风格 UI 的展示名称和默认提示词
-    ├── assets/                        # 模板与 HTML 报告框架
+    │   └── openai.yaml
+    ├── assets/                        # 共享模板（与 technical-pm 相同）
     │   ├── prd-template.md
-    │   ├── report-template.html
     │   ├── risk-register-template.md
     │   └── user-story-template.md
-    └── references/                    # 评审据以打分的标准
+    └── references/                    # 共享参考资料（与 technical-pm 相同）
         ├── ai-ml-products.md
         ├── delivery-and-process.md
         ├── discovery-and-requirements.md
         ├── edge-cases-and-exceptions.md
         ├── metrics.md
         ├── prioritization-and-estimation.md
-        ├── review-rubric.md
         ├── technical-artifacts.md
-        ├── worked-example.md
-        └── worked-review-example.md
+        └── worked-example.md
 ```
 
 ## 约定
