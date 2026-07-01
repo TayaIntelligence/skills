@@ -1,3 +1,4 @@
+
 # Taya Skills
 
 **English** · [中文](README.zh-CN.md)
@@ -6,7 +7,8 @@ A collection of reusable **Agent Skills** for Claude (Claude Code / Claude.ai / 
 other AI tools that can load Markdown instructions, such as Codex. Each skill is a self-contained
 folder with a `SKILL.md` instruction file, plus the templates and references it loads on demand.
 
-This repository currently ships one skill: **`technical-pm`**.
+This repository ships two skills: **`technical-pm`** (write a PRD) and **`prd-review`** (audit a PRD
+someone already wrote).
 
 ## `technical-pm` - Technical Product Manager
 
@@ -58,32 +60,61 @@ starts building without a clear problem statement and scope.
 The skill follows the user's language. For Chinese users, product artifacts default to Chinese while
 keeping established framework terms such as `MVP`, `PRD`, `RICE`, and `MoSCoW` in English.
 
+## `prd-review` - PRD Completeness Review
+
+`prd-review` is the inverse of `technical-pm`: instead of *writing* a PRD, it **audits one that someone
+has already written**. Point it at an existing PRD or spec and it answers a single question: *can an
+engineer build the right thing from this without guessing, and if not, what exactly is missing?* It
+diagnoses the document rather than rewriting it.
+
+It reuses the `technical-pm` body of knowledge, but inverts it: those references define *how a good PRD
+is written*, so here they become the **standard the review judges against**.
+
+### What It Produces
+
+| Need | Output |
+|---|---|
+| **Completeness rating** | How complete the PRD is, scored against the technical-PM rubric: problem framing, scope in/out, user stories and acceptance criteria covering edges, success metrics, technical contracts, AI/ML eval bar, risks, and dependencies |
+| **Go / no-go verdict** | A **ready / conditional / not-ready** call on whether the PRD can go to development |
+| **Gap list** | A prioritized, specific list of exactly what is missing and must be added, not vague notes |
+| **HTML report** | The full assessment delivered as a clear, self-contained HTML report (`assets/report-template.html`) |
+
+### When To Use It
+
+Use `prd-review` when you want to **review, grade, or sanity-check an existing PRD** rather than write
+one, for example "审一下这份 PRD", "这份需求能交开发吗", "PRD 还缺什么", or "is this spec ready for
+dev". Trigger it on evaluating a PRD someone already wrote, not on drafting a new one.
+
 ## Installing Into Claude Code
 
-Copy the skill folder into Claude Code's skills directory:
+Copy a skill folder into Claude Code's skills directory:
 
 ```bash
-mkdir -p "$HOME/.claude/skills" && cp -R technical-pm "$HOME/.claude/skills/technical-pm"
+mkdir -p "$HOME/.claude/skills"
+cp -R technical-pm "$HOME/.claude/skills/technical-pm"
+cp -R prd-review "$HOME/.claude/skills/prd-review"
 ```
 
-Then start a new conversation and either let the skill trigger automatically on product/PM-shaped
+Then start a new conversation and either let a skill trigger automatically on product/PM-shaped
 requests, or invoke it explicitly:
 
 ```text
 $technical-pm
+$prd-review
 ```
 
-Example prompt:
+Example prompts:
 
 ```text
 Act as a technical PM and turn this feature idea into a scoped PRD.
+Review this PRD and tell me whether it is ready for development.
 ```
 
 ## Other AI Tools
 
-Load `technical-pm/SKILL.md` as the system instruction. The skill will pull relevant files from
-`references/` and `assets/` on demand. For Codex-style UIs, `technical-pm/agents/openai.yaml`
-provides display metadata and a default prompt.
+Load a skill's `SKILL.md` (`technical-pm/SKILL.md` or `prd-review/SKILL.md`) as the system
+instruction. The skill will pull relevant files from `references/` and `assets/` on demand. For
+Codex-style UIs, each skill's `agents/openai.yaml` provides display metadata and a default prompt.
 
 ## Repository Structure
 
@@ -92,23 +123,43 @@ skills/
 ├── .gitignore
 ├── README.md
 ├── README.zh-CN.md
-└── technical-pm/
-    ├── SKILL.md                       # instructions and workflow router
+├── technical-pm/
+│   ├── SKILL.md                       # instructions and workflow router
+│   ├── agents/
+│   │   └── openai.yaml                # display name and default prompt for Codex-style UIs
+│   ├── assets/                        # fill-in templates
+│   │   ├── prd-template.md
+│   │   ├── risk-register-template.md
+│   │   └── user-story-template.md
+│   └── references/                    # deep-dive references loaded on demand
+│       ├── ai-ml-products.md
+│       ├── delivery-and-process.md
+│       ├── discovery-and-requirements.md
+│       ├── edge-cases-and-exceptions.md
+│       ├── metrics.md
+│       ├── prioritization-and-estimation.md
+│       ├── technical-artifacts.md
+│       └── worked-example.md
+└── prd-review/
+    ├── SKILL.md                       # instructions and rubric router
     ├── agents/
     │   └── openai.yaml                # display name and default prompt for Codex-style UIs
-    ├── assets/                        # fill-in templates
+    ├── assets/                        # templates and the HTML report shell
     │   ├── prd-template.md
+    │   ├── report-template.html
     │   ├── risk-register-template.md
     │   └── user-story-template.md
-    └── references/                    # deep-dive references loaded on demand
+    └── references/                    # the rubric and standards the review judges against
         ├── ai-ml-products.md
         ├── delivery-and-process.md
         ├── discovery-and-requirements.md
         ├── edge-cases-and-exceptions.md
         ├── metrics.md
         ├── prioritization-and-estimation.md
+        ├── review-rubric.md
         ├── technical-artifacts.md
-        └── worked-example.md
+        ├── worked-example.md
+        └── worked-review-example.md
 ```
 
 ## Conventions

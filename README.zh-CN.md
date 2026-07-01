@@ -4,7 +4,7 @@
 
 一组可复用的 **Agent Skills（技能包）**，适用于 Claude（Claude Code / Claude.ai / Claude API）以及其他可加载 Markdown 指令的 AI 工具，例如 Codex。每个技能都是一个自包含的文件夹，包含 `SKILL.md` 指令文件，以及它按需加载的模板和参考资料。
 
-本仓库目前包含一个技能：**`technical-pm`**。
+本仓库包含两个技能：**`technical-pm`**（写 PRD）和 **`prd-review`**（审别人已经写好的 PRD）。
 
 ## `technical-pm` - 技术产品经理
 
@@ -47,29 +47,52 @@
 
 技能会跟随用户语言。中文用户的产品产物默认使用中文，只保留团队常用的框架术语，例如 `MVP`、`PRD`、`RICE`、`MoSCoW`。
 
+## `prd-review` - PRD 完整性审核
+
+`prd-review` 是 `technical-pm` 的反向用法：它不*写* PRD，而是**审核别人已经写好的** PRD。给它一份已有的 PRD 或需求规格，它只回答一个问题：*工程师能不能照着它把正确的东西造出来而不用猜？如果不能，到底还缺什么？* 它只诊断文档，而不改写。
+
+它复用 `technical-pm` 的知识体系，但反过来使用：那些参考资料定义了*一份好 PRD 该怎么写*，在这里就成了**评审据以打分的标准**。
+
+### 能产出什么
+
+| 需求 | 产出 |
+|---|---|
+| **完整度评分** | 用技术 PM 评判标准为 PRD 打分：问题界定、范围做 / 不做、覆盖边界与异常的用户故事和验收标准、成功指标、技术契约、AI/ML 评测门槛、风险与依赖 |
+| **交付裁决** | 给出 **可开工 / 有条件 / 不可开工** 的判断，回答这份 PRD 能不能交开发 |
+| **缺失项清单** | 一份按优先级排列、具体的“还缺什么、必须补齐什么”清单，而不是含糊的意见 |
+| **HTML 报告** | 整份评估以清晰、自包含的 HTML 报告交付（`assets/report-template.html`） |
+
+### 什么时候使用
+
+当你想**审核、打分或体检一份已有的 PRD**，而不是从零写一份时，使用 `prd-review`，例如“审一下这份 PRD”“这份需求能交开发吗”“PRD 还缺什么”“is this spec ready for dev”。它触发于评审别人已经写好的 PRD，而不是起草新文档。
+
 ## 安装到 Claude Code
 
 把技能目录复制到 Claude Code 的 skills 目录：
 
 ```bash
-mkdir -p "$HOME/.claude/skills" && cp -R technical-pm "$HOME/.claude/skills/technical-pm"
+mkdir -p "$HOME/.claude/skills"
+cp -R technical-pm "$HOME/.claude/skills/technical-pm"
+cp -R prd-review "$HOME/.claude/skills/prd-review"
 ```
 
-然后开启新对话，让它在产品 / PM 类请求中自动触发，或显式调用：
+然后开启新对话，让技能在产品 / PM 类请求中自动触发，或显式调用：
 
 ```text
 $technical-pm
+$prd-review
 ```
 
 示例：
 
 ```text
 请作为技术产品经理，把这个功能想法整理成一份范围清晰的 PRD。
+审一下这份 PRD，告诉我它能不能交开发。
 ```
 
 ## 其他 AI 工具
 
-将 `technical-pm/SKILL.md` 作为系统指令加载。技能会在需要时按需拉取 `references/` 和 `assets/` 中的文件。如果使用 Codex 风格的 UI，`technical-pm/agents/openai.yaml` 提供展示名称和默认提示词。
+将某个技能的 `SKILL.md`（`technical-pm/SKILL.md` 或 `prd-review/SKILL.md`）作为系统指令加载。技能会在需要时按需拉取 `references/` 和 `assets/` 中的文件。如果使用 Codex 风格的 UI，每个技能的 `agents/openai.yaml` 提供展示名称和默认提示词。
 
 ## 仓库结构
 
@@ -78,23 +101,43 @@ skills/
 ├── .gitignore
 ├── README.md
 ├── README.zh-CN.md
-└── technical-pm/
-    ├── SKILL.md                       # 指令与工作流路由
+├── technical-pm/
+│   ├── SKILL.md                       # 指令与工作流路由
+│   ├── agents/
+│   │   └── openai.yaml                # Codex 风格 UI 的展示名称和默认提示词
+│   ├── assets/                        # 填写模板
+│   │   ├── prd-template.md
+│   │   ├── risk-register-template.md
+│   │   └── user-story-template.md
+│   └── references/                    # 按需加载的深度参考资料
+│       ├── ai-ml-products.md
+│       ├── delivery-and-process.md
+│       ├── discovery-and-requirements.md
+│       ├── edge-cases-and-exceptions.md
+│       ├── metrics.md
+│       ├── prioritization-and-estimation.md
+│       ├── technical-artifacts.md
+│       └── worked-example.md
+└── prd-review/
+    ├── SKILL.md                       # 指令与评审路由
     ├── agents/
     │   └── openai.yaml                # Codex 风格 UI 的展示名称和默认提示词
-    ├── assets/                        # 填写模板
+    ├── assets/                        # 模板与 HTML 报告框架
     │   ├── prd-template.md
+    │   ├── report-template.html
     │   ├── risk-register-template.md
     │   └── user-story-template.md
-    └── references/                    # 按需加载的深度参考资料
+    └── references/                    # 评审据以打分的标准
         ├── ai-ml-products.md
         ├── delivery-and-process.md
         ├── discovery-and-requirements.md
         ├── edge-cases-and-exceptions.md
         ├── metrics.md
         ├── prioritization-and-estimation.md
+        ├── review-rubric.md
         ├── technical-artifacts.md
-        └── worked-example.md
+        ├── worked-example.md
+        └── worked-review-example.md
 ```
 
 ## 约定
